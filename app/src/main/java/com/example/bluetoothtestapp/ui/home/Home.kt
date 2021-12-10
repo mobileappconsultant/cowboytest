@@ -33,6 +33,13 @@ class Home: BaseFragment<FragmentHomeBinding>() {
             launchFragment(action)
         }
         binding.deviceList.adapter = bluetoothAdapter
+
+        binding.button.setOnClickListener {
+            if (viewModel.isBluetoothEnabled()) {
+                viewModel.scanForAvailableDevices()
+                binding.button.makeGone()
+            }
+        }
     }
 
 
@@ -66,8 +73,11 @@ class Home: BaseFragment<FragmentHomeBinding>() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (viewModel.isBluetoothEnabled()) {
                     viewModel.scanForAvailableDevices()
+                    binding.button.makeGone()
                 } else {
+                    binding.progressBar.makeGone()
                     requireContext().toastMessage("Error accessing bluetooth")
+                    binding.button.makeVisible()
                 }
             } else {
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults)
