@@ -8,6 +8,7 @@
     android:elevation="@dimen/size_3dp"
     app:cardBackgroundColor="@color/white"
     app:cardCornerRadius="3dp"
+    android:padding="@dimen/size_16dp"
     app:cardUseCompatPadding="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -16,14 +17,15 @@
 
         <TextView
             android:id="@+id/deviceInstance"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginStart="16dp"
-            android:background="@drawable/circular_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/size_8dp"
             android:gravity="center"
-            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:padding="@dimen/size_4dp"
+            android:textColor="@color/black"
             android:textSize="@dimen/text_size_18sp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -31,18 +33,17 @@
             android:id="@+id/deviceUuid"
             android:layout_width="@dimen/size_0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:gravity="left"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:padding="@dimen/size_8dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textColor="@color/black"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_chainStyle="spread"
-            app:layout_constraintStart_toEndOf="@+id/deviceInstance"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/deviceInstance"
             tools:text="@string/devices" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>

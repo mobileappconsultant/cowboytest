@@ -9,6 +9,7 @@
         <entry key="app/src/main/res/layout/fragment_device_detail.xml" value="0.335" />
         <entry key="app/src/main/res/layout/fragment_home.xml" value="0.12537993920972645" />
         <entry key="app/src/main/res/layout/item_device_detail.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/item_service_detail.xml" value="0.165" />
         <entry key="app/src/main/res/layout/layout_device_item.xml" value="0.25" />
       </map>
     </option>

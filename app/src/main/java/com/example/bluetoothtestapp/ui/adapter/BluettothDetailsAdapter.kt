@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bluetoothtestapp.databinding.ItemDeviceDetailBinding
+import com.example.bluetoothtestapp.databinding.ItemServiceDetailBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,17 +65,18 @@ class BluetoothDetailsAdapter(private val context: Context) : RecyclerView.Adapt
         }
     }
 
-    class ServiceViewHolder private constructor(val binding: ItemDeviceDetailBinding) :
+    class ServiceViewHolder private constructor(val binding: ItemServiceDetailBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: BluetoothGattService) {
-            binding.deviceInstance.text = item.instanceId.toString()
+            binding.deviceInstance.text = "Service Id - ".plus(item.instanceId.toString())
             binding.deviceUuid.text = item.uuid.toString()
+
         }
 
         companion object {
             fun from(parent: ViewGroup): ServiceViewHolder {
                 val layoutInflater = LayoutInflater.from(parent.context)
-                val binding = ItemDeviceDetailBinding.inflate(layoutInflater, parent, false)
+                val binding = ItemServiceDetailBinding.inflate(layoutInflater, parent, false)
 
                 return ServiceViewHolder(binding)
             }

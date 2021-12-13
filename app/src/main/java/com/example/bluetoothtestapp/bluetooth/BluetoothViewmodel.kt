@@ -4,25 +4,24 @@ import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
-import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.bluetoothtestapp.model.AvailableDevice
+import com.example.bluetoothtestapp.ui.bluetooth.BluetoothManagerWrapper
 import com.example.bluetoothtestapp.utils.Resources
-import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class BluetoothViewModel @ViewModelInject constructor(
-    @ApplicationContext val applicationContext: Context,
-    ): ViewModel() {
+@HiltViewModel
+class BluetoothViewModel @Inject constructor(
+    private val bleManager: BluetoothManagerWrapper,
+): ViewModel() {
 
-    private val bluetoothManager = applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-
-    private val bluetoothAdapter = bluetoothManager.adapter
+    private val bluetoothAdapter = bleManager.bluetoothManager.adapter
 
     private var bluetoothGatt: BluetoothGatt? = null
 
@@ -30,18 +29,15 @@ class BluetoothViewModel @ViewModelInject constructor(
     val listOfDevices = ArrayList<AvailableDevice>()
 
     private val _bluetoothDevicesFound = MutableLiveData<Resources<ArrayList<AvailableDevice>>>()
-    val bluetoothDevicesFound
-        get() = _bluetoothDevicesFound
+    val bluetoothDevicesFound: LiveData<Resources<ArrayList<AvailableDevice>>> =
+        _bluetoothDevicesFound
 
     private val mainHandler = Handler(
         Looper.getMainLooper()
     )
 
-    private val _connectionState: MutableLiveData<ConnectionStatus> = MutableLiveData()
-    val connectionState:LiveData<ConnectionStatus> = _connectionState
-
-    private val _connectedDevice = MutableLiveData<AvailableDevice?>()
-    val connectedDevice:LiveData<AvailableDevice?> = _connectedDevice
+    private val _connectionState: MutableLiveData<ConnectionItem> = MutableLiveData()
+    val connectionState: LiveData<ConnectionItem> = _connectionState
 
     private var targetDevice: AvailableDevice? = null
 
@@ -62,7 +58,8 @@ class BluetoothViewModel @ViewModelInject constructor(
 
     fun updateDeviceList() {
         listOfDevices.sortByDescending { it.signalStrength }
-        bluetoothDevicesFound.value = Resources.Success(listOfDevices.map { it.copy() } as ArrayList<AvailableDevice>)
+        _bluetoothDevicesFound.value =
+            Resources.Success(listOfDevices.map { it.copy() } as ArrayList<AvailableDevice>)
     }
 
     fun scanForAvailableDevices() {
@@ -133,14 +130,16 @@ class BluetoothViewModel @ViewModelInject constructor(
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 bluetoothGatt?.discoverServices()
-                _connectionState.postValue(ConnectionStatus.CONNECTED)
 
-                targetDevice?.let {
-                    _connectedDevice.postValue(it)
-                }
+                _connectionState.postValue(
+                    ConnectionItem(
+                        ConnectionStatus.CONNECTED,
+                        targetDevice?.device?.name
+                    )
+                )
+
             } else {
-                _connectionState.postValue(ConnectionStatus.DISCONNECTED)
-                _connectedDevice.postValue(null)
+                _connectionState.postValue(ConnectionItem(ConnectionStatus.DISCONNECTED))
             }
         }
 
@@ -160,15 +159,19 @@ class BluetoothViewModel @ViewModelInject constructor(
         }
     }
 
-    fun connectToDevice(it: AvailableDevice) {
-        targetDevice = it
+    fun connectToDevice(device: AvailableDevice) {
+        targetDevice = device
+//        stopScanning()
+        bluetoothGatt = bleManager.connectToDevice(device, bluetoothConnectionCallBack)
 
-        stopScanning()
-
-        bluetoothGatt = it.device.connectGatt(applicationContext, true, bluetoothConnectionCallBack)
     }
 
     fun disconnect() {
         bluetoothGatt?.disconnect()
     }
+
+    data class ConnectionItem(
+        val connectionStatus: ConnectionStatus,
+        val deviceName: String? = ""
+    )
 }

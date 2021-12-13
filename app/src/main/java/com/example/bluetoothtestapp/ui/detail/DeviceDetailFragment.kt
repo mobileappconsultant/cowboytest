@@ -1,6 +1,7 @@
 package com.example.bluetoothtestapp.ui.detail
 
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.bluetoothtestapp.bluetooth.BluetoothViewModel
 import com.example.bluetoothtestapp.databinding.FragmentDeviceDetailBinding
@@ -13,10 +14,16 @@ class DeviceDetailFragment : BaseFragment<FragmentDeviceDetailBinding>() {
 
     private val viewModel: BluetoothViewModel by activityViewModels()
 
-    private val deviceDetailAdapter = BluetoothDetailsAdapter(requireContext())
+
+    private val args: DeviceDetailFragmentArgs by navArgs()
+
+    private val deviceDetailAdapter: BluetoothDetailsAdapter by lazy {
+        BluetoothDetailsAdapter(requireContext())
+    }
 
     override fun setUp() {
 
+        binding.infoDeviceName.text  =  args.deviceName
         binding.deviceInfoList.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = deviceDetailAdapter
@@ -33,6 +40,6 @@ class DeviceDetailFragment : BaseFragment<FragmentDeviceDetailBinding>() {
     }
 
     fun disconnect() {
-        viewModel.disconnect()
+        //viewModel.disconnect()
     }
 }

@@ -48,9 +48,9 @@ class Home: BaseFragment<FragmentHomeBinding>() {
 
     override fun observeData() {
         viewModel.connectionState.observe(viewLifecycleOwner) {
-            when (it) {
+            when (it.connectionStatus) {
                 ConnectionStatus.CONNECTED -> {
-                    val action = HomeDirections.actionHomeFragmentToDeviceDetailFragment()
+                    val action = HomeDirections.actionHomeFragmentToDeviceDetailFragment(it.deviceName)
                     launchFragment(action)
                 }
                 else -> {

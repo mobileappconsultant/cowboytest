@@ -18,5 +18,10 @@
         android:id="@+id/deviceDetailFragment"
         android:name="com.example.bluetoothtestapp.ui.detail.DeviceDetailFragment"
         android:label="fragment_device_detail"
-        tools:layout="@layout/fragment_device_detail" />
+        tools:layout="@layout/fragment_device_detail" >
+        <argument
+            android:name="deviceName"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
 </navigation>
