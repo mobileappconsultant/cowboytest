@@ -3,16 +3,18 @@ package com.example.bluetoothtestapp.ui.home
 
 import android.Manifest
 import android.content.pm.PackageManager
-import androidx.core.view.isVisible
+import android.widget.Toast
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.bluetoothtestapp.bluetooth.BluetoothViewmodel
+import com.example.bluetoothtestapp.bluetooth.BluetoothViewModel
+import com.example.bluetoothtestapp.bluetooth.ConnectionStatus
 import com.example.bluetoothtestapp.databinding.FragmentHomeBinding
 import com.example.bluetoothtestapp.ui.adapter.BluetoothAdapter
 import com.example.bluetoothtestapp.ui.base.BaseFragment
 import com.example.bluetoothtestapp.ui.extensions.makeGone
 import com.example.bluetoothtestapp.ui.extensions.makeVisible
 import com.example.bluetoothtestapp.ui.extensions.toastMessage
+import com.example.bluetoothtestapp.utils.Resources
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -22,15 +24,14 @@ class Home: BaseFragment<FragmentHomeBinding>() {
 
     override fun getViewBinding(): FragmentHomeBinding = FragmentHomeBinding.inflate(layoutInflater)
 
-    private val viewModel: BluetoothViewmodel by activityViewModels()
+    private val viewModel: BluetoothViewModel by activityViewModels()
 
     override fun setUp() {
 
         binding.deviceList.layoutManager = LinearLayoutManager(requireContext())
 
         bluetoothAdapter = BluetoothAdapter(requireContext()) {
-            val action = HomeDirections.actionHomeFragmentToDeviceDetailFragment()
-            launchFragment(action)
+            viewModel.connectToDevice(it)
         }
         binding.deviceList.adapter = bluetoothAdapter
 
@@ -42,14 +43,30 @@ class Home: BaseFragment<FragmentHomeBinding>() {
         }
     }
 
-
     override fun observeData() {
+        viewModel.connectionState.observe(viewLifecycleOwner) {
+            when (it) {
+                ConnectionStatus.CONNECTED -> {
+                    val action = HomeDirections.actionHomeFragmentToDeviceDetailFragment()
+                    launchFragment(action)
+                }
+                else -> Toast.makeText(requireContext(), it.toString(), Toast.LENGTH_LONG).show()
+            }
+
+        }
+
         viewModel.bluetoothDevicesFound.observe(viewLifecycleOwner
         ) {
-            if(it.isNotEmpty()) {
-                binding.deviceList.makeVisible()
-                binding.progressBar.makeGone()
-                bluetoothAdapter.update(it)
+            when(it) {
+                is Resources.Success -> {
+                    if(it.data.isNotEmpty()) {
+                        binding.deviceList.makeVisible()
+                        binding.progressBar.makeGone()
+                        bluetoothAdapter.update(it.data)
+                    }
+                }
+                is Resources.Failure -> TODO()
+                is Resources.Loading -> TODO()
             }
         }
     }

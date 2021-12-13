@@ -1,6 +1,6 @@
 package com.example.bluetoothtestapp.bluetooth
 
-import android.bluetooth.BluetoothManager
+import android.bluetooth.*
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
@@ -12,25 +12,47 @@ import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.bluetoothtestapp.model.AvailableDevice
+import com.example.bluetoothtestapp.utils.Resources
 import dagger.hilt.android.qualifiers.ApplicationContext
 
-class BluetoothViewmodel @ViewModelInject constructor(
-    @ApplicationContext applicationContext:Context,
+class BluetoothViewModel @ViewModelInject constructor(
+    @ApplicationContext val applicationContext: Context,
     ): ViewModel() {
 
     private val bluetoothManager = applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+
     private val bluetoothAdapter = bluetoothManager.adapter
+
+    private var bluetoothGatt: BluetoothGatt? = null
 
     private val bluetoothDeviceScanner = bluetoothAdapter.bluetoothLeScanner
     val listOfDevices = ArrayList<AvailableDevice>()
 
-    private val _bluetoothDevicesFound = MutableLiveData<ArrayList<AvailableDevice>>()
+    private val _bluetoothDevicesFound = MutableLiveData<Resources<ArrayList<AvailableDevice>>>()
     val bluetoothDevicesFound
         get() = _bluetoothDevicesFound
 
     private val mainHandler = Handler(
         Looper.getMainLooper()
     )
+
+
+
+    private val _connectionState: MutableLiveData<ConnectionStatus> = MutableLiveData()
+    val connectionState
+        get() = _connectionState
+
+    private val _connectedDevice = MutableLiveData<AvailableDevice?>(null)
+    val connectedDevice
+        get() = _connectedDevice
+
+    private var targetDevice: AvailableDevice? = null
+
+    private val _servicesAndCharacteristics =
+        MutableLiveData<HashMap<BluetoothGattService, List<BluetoothGattCharacteristic>>>()
+    val servicesAndCharacteristics
+        get() = _servicesAndCharacteristics
+
 
     private val resumeScan = object : Runnable {
         override fun run() {
@@ -43,7 +65,7 @@ class BluetoothViewmodel @ViewModelInject constructor(
 
     fun updateDeviceList() {
         listOfDevices.sortByDescending { it.signalStrength }
-        bluetoothDevicesFound.value = listOfDevices.map { it.copy() } as ArrayList<AvailableDevice>
+        bluetoothDevicesFound.value = Resources.Success(listOfDevices.map { it.copy() } as ArrayList<AvailableDevice>)
     }
 
     fun scanForAvailableDevices() {
@@ -106,12 +128,51 @@ class BluetoothViewmodel @ViewModelInject constructor(
         }
     }
 
-    fun connectToDevice(availableDevice: AvailableDevice) {
-
-    }
-
     fun isBluetoothEnabled(): Boolean {
         return (bluetoothAdapter!= null && bluetoothAdapter.isEnabled)
     }
 
+    private val bluetoothConnectionCallBack: BluetoothGattCallback = object : BluetoothGattCallback() {
+        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                bluetoothGatt?.discoverServices()
+                _connectionState.postValue(ConnectionStatus.CONNECTED)
+
+                targetDevice?.let {
+                    _connectedDevice.postValue(it)
+                }
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                _connectionState.postValue(ConnectionStatus.DISCONNECTED)
+                _connectedDevice.postValue(null)
+            }
+        }
+
+
+        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                val res = HashMap<BluetoothGattService, List<BluetoothGattCharacteristic>>()
+
+                bluetoothGatt?.services?.forEach { service ->
+                    val characteristicList = ArrayList<BluetoothGattCharacteristic>()
+                    service.characteristics.forEach { characteristic ->
+                        characteristicList.add(characteristic)
+                    }
+                    res[service] = characteristicList
+                }
+                _servicesAndCharacteristics.postValue(res)
+            }
+        }
+    }
+
+    fun connectToDevice(it: AvailableDevice) {
+        targetDevice = it
+
+        stopScanning()
+
+        bluetoothGatt = it.device.connectGatt(applicationContext, true, bluetoothConnectionCallBack)
+    }
+
+    fun disconnect() {
+        bluetoothGatt?.disconnect()
+    }
 }
