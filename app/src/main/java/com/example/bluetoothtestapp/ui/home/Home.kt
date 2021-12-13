@@ -50,7 +50,7 @@ class Home: BaseFragment<FragmentHomeBinding>() {
                     val action = HomeDirections.actionHomeFragmentToDeviceDetailFragment()
                     launchFragment(action)
                 }
-                else -> Toast.makeText(requireContext(), it.toString(), Toast.LENGTH_LONG).show()
+                else -> Toast.makeText(requireContext(), "can't connect to device", Toast.LENGTH_LONG).show()
             }
 
         }
