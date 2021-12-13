@@ -12,6 +12,7 @@ import com.example.bluetoothtestapp.databinding.FragmentHomeBinding
 import com.example.bluetoothtestapp.ui.adapter.BluetoothAdapter
 import com.example.bluetoothtestapp.ui.base.BaseFragment
 import com.example.bluetoothtestapp.ui.extensions.makeGone
+import com.example.bluetoothtestapp.ui.extensions.makeInvisible
 import com.example.bluetoothtestapp.ui.extensions.makeVisible
 import com.example.bluetoothtestapp.ui.extensions.toastMessage
 import com.example.bluetoothtestapp.utils.Resources
@@ -32,6 +33,8 @@ class Home: BaseFragment<FragmentHomeBinding>() {
 
         bluetoothAdapter = BluetoothAdapter(requireContext()) {
             viewModel.connectToDevice(it)
+            binding.progressBar.makeVisible()
+            binding.deviceList.makeInvisible()
         }
         binding.deviceList.adapter = bluetoothAdapter
 
@@ -50,7 +53,11 @@ class Home: BaseFragment<FragmentHomeBinding>() {
                     val action = HomeDirections.actionHomeFragmentToDeviceDetailFragment()
                     launchFragment(action)
                 }
-                else -> Toast.makeText(requireContext(), "can't connect to device", Toast.LENGTH_LONG).show()
+                else -> {
+                    Toast.makeText(requireContext(), "can't connect to device", Toast.LENGTH_LONG).show()
+                    binding.deviceList.makeVisible()
+                    binding.progressBar.makeGone()
+                }
             }
 
         }
@@ -65,8 +72,12 @@ class Home: BaseFragment<FragmentHomeBinding>() {
                         bluetoothAdapter.update(it.data)
                     }
                 }
-                is Resources.Failure -> TODO()
-                is Resources.Loading -> TODO()
+                is Resources.Failure -> {
+
+                }
+                is Resources.Loading -> {
+
+                }
             }
         }
     }

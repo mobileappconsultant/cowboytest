@@ -2,8 +2,10 @@ package com.example.bluetoothtestapp.ui.adapter
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bluetoothtestapp.R
 import com.example.bluetoothtestapp.databinding.LayoutDeviceItemBinding
@@ -34,7 +36,11 @@ class BluetoothAdapter(private val context: Context, val onClick: (AvailableDevi
     inner class BluetoothDeviceViewHolder(val binding: LayoutDeviceItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(element: AvailableDevice) {
-            binding.deviceName.text = element.device.name ?: element.device.address
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                binding.deviceName.text = element.device.alias ?: element.device.address
+            } else {
+                binding.deviceName.text = element.device.name ?: element.device.address
+            }
             binding.strength.text = element.signalStrength.toString()
             if (element.isDeviceConnectable) binding.button.makeVisible()
             else binding.button.makeGone()

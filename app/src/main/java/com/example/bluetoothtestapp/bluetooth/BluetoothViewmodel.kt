@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.hilt.lifecycle.ViewModelInject
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.bluetoothtestapp.model.AvailableDevice
@@ -36,15 +37,11 @@ class BluetoothViewModel @ViewModelInject constructor(
         Looper.getMainLooper()
     )
 
-
-
     private val _connectionState: MutableLiveData<ConnectionStatus> = MutableLiveData()
-    val connectionState
-        get() = _connectionState
+    val connectionState:LiveData<ConnectionStatus> = _connectionState
 
-    private val _connectedDevice = MutableLiveData<AvailableDevice?>(null)
-    val connectedDevice
-        get() = _connectedDevice
+    private val _connectedDevice = MutableLiveData<AvailableDevice?>()
+    val connectedDevice:LiveData<AvailableDevice?> = _connectedDevice
 
     private var targetDevice: AvailableDevice? = null
 
@@ -141,12 +138,11 @@ class BluetoothViewModel @ViewModelInject constructor(
                 targetDevice?.let {
                     _connectedDevice.postValue(it)
                 }
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            } else {
                 _connectionState.postValue(ConnectionStatus.DISCONNECTED)
                 _connectedDevice.postValue(null)
             }
         }
-
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
