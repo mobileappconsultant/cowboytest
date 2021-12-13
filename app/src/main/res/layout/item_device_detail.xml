@@ -7,6 +7,7 @@
     android:layout_height="wrap_content"
     android:elevation="@dimen/size_3dp"
     app:cardBackgroundColor="@color/white"
+    android:padding="@dimen/size_8dp"
     app:cardCornerRadius="3dp"
     app:cardUseCompatPadding="true">
 
@@ -35,7 +36,6 @@
             android:gravity="left"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textColor="@color/black"
-            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_chainStyle="spread"

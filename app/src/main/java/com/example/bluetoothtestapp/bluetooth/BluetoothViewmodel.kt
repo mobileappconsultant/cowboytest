@@ -5,15 +5,16 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.bluetoothtestapp.model.AvailableDevice
 import com.example.bluetoothtestapp.ui.bluetooth.BluetoothManagerWrapper
 import com.example.bluetoothtestapp.utils.Resources
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,9 +33,16 @@ class BluetoothViewModel @Inject constructor(
     val bluetoothDevicesFound: LiveData<Resources<ArrayList<AvailableDevice>>> =
         _bluetoothDevicesFound
 
-    private val mainHandler = Handler(
-        Looper.getMainLooper()
-    )
+    fun startUpdates() {
+        viewModelScope.launch {
+            while(true) {
+                updateDeviceList()
+
+                startScanForDevices()
+                delay(10000)
+            }
+        }
+    }
 
     private val _connectionState: MutableLiveData<ConnectionItem> = MutableLiveData()
     val connectionState: LiveData<ConnectionItem> = _connectionState
@@ -46,16 +54,6 @@ class BluetoothViewModel @Inject constructor(
     val servicesAndCharacteristics
         get() = _servicesAndCharacteristics
 
-
-    private val resumeScan = object : Runnable {
-        override fun run() {
-            updateDeviceList()
-
-            startScanForDevices()
-            mainHandler.postDelayed(this, 10000L)
-        }
-    }
-
     fun updateDeviceList() {
         listOfDevices.sortByDescending { it.signalStrength }
         _bluetoothDevicesFound.value =
@@ -63,9 +61,7 @@ class BluetoothViewModel @Inject constructor(
     }
 
     fun scanForAvailableDevices() {
-        startScanForDevices()
-        mainHandler.removeCallbacks(resumeScan)
-        mainHandler.post(resumeScan)
+        startUpdates()
     }
 
     fun startScanForDevices() {
@@ -87,7 +83,6 @@ class BluetoothViewModel @Inject constructor(
 
     private fun stopScanning() {
         bluetoothDeviceScanner?.stopScan(scanCallBack)
-        mainHandler.removeCallbacks(resumeScan)
     }
 
     private val scanCallBack: ScanCallback = object : ScanCallback() {
