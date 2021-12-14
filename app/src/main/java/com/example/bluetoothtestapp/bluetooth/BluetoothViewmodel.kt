@@ -81,11 +81,11 @@ class BluetoothViewModel @Inject constructor(
         bluetoothDeviceScanner.startScan(null, scanSettings, scanCallBack)
     }
 
-    private fun stopScanning() {
+     fun stopScanning() {
         bluetoothDeviceScanner?.stopScan(scanCallBack)
     }
 
-    private val scanCallBack: ScanCallback = object : ScanCallback() {
+     private val scanCallBack: ScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
             handleResult(result)
@@ -156,7 +156,7 @@ class BluetoothViewModel @Inject constructor(
 
     fun connectToDevice(device: AvailableDevice) {
         targetDevice = device
-//        stopScanning()
+        stopScanning()
         bluetoothGatt = bleManager.connectToDevice(device, bluetoothConnectionCallBack)
 
     }
