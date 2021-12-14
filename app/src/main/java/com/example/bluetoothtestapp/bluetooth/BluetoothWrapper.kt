@@ -16,7 +16,6 @@ class BluetoothManagerWrapper @Inject constructor(
     lateinit var bluetoothManager: BluetoothManager
         private set
 
-
     init {
         initBle()
     }

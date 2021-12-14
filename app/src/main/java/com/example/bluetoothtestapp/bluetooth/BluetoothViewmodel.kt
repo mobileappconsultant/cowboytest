@@ -30,10 +30,19 @@ class BluetoothViewModel @Inject constructor(
     val listOfDevices = ArrayList<AvailableDevice>()
 
     private val _bluetoothDevicesFound = MutableLiveData<Resources<ArrayList<AvailableDevice>>>()
-    val bluetoothDevicesFound: LiveData<Resources<ArrayList<AvailableDevice>>> =
-        _bluetoothDevicesFound
+    val bluetoothDevicesFound: LiveData<Resources<ArrayList<AvailableDevice>>> = _bluetoothDevicesFound
 
-    fun startUpdates() {
+
+    private val _connectionState: MutableLiveData<ConnectionItem> = MutableLiveData()
+    val connectionState: LiveData<ConnectionItem> = _connectionState
+
+    private var targetDevice: AvailableDevice? = null
+
+    private val _servicesAndCharacteristics =
+        MutableLiveData<HashMap<BluetoothGattService, List<BluetoothGattCharacteristic>>>()
+    val servicesAndCharacteristics: LiveData<HashMap<BluetoothGattService, List<BluetoothGattCharacteristic>>> =_servicesAndCharacteristics
+
+    private fun startUpdates() {
         viewModelScope.launch {
             while(true) {
                 updateDeviceList()
@@ -44,17 +53,7 @@ class BluetoothViewModel @Inject constructor(
         }
     }
 
-    private val _connectionState: MutableLiveData<ConnectionItem> = MutableLiveData()
-    val connectionState: LiveData<ConnectionItem> = _connectionState
-
-    private var targetDevice: AvailableDevice? = null
-
-    private val _servicesAndCharacteristics =
-        MutableLiveData<HashMap<BluetoothGattService, List<BluetoothGattCharacteristic>>>()
-    val servicesAndCharacteristics
-        get() = _servicesAndCharacteristics
-
-    fun updateDeviceList() {
+    private fun updateDeviceList() {
         listOfDevices.sortByDescending { it.signalStrength }
         _bluetoothDevicesFound.value =
             Resources.Success(listOfDevices.map { it.copy() } as ArrayList<AvailableDevice>)
@@ -64,7 +63,7 @@ class BluetoothViewModel @Inject constructor(
         startUpdates()
     }
 
-    fun startScanForDevices() {
+    private fun startScanForDevices() {
         bluetoothDeviceScanner?.stopScan(scanCallBack)
 
         val scanBuilder = ScanSettings.Builder()
@@ -81,7 +80,7 @@ class BluetoothViewModel @Inject constructor(
         bluetoothDeviceScanner.startScan(null, scanSettings, scanCallBack)
     }
 
-     fun stopScanning() {
+     private fun stopScanning() {
         bluetoothDeviceScanner?.stopScan(scanCallBack)
     }
 
